@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ProductModule } from './product/product.module';
@@ -12,9 +13,15 @@ import { AuditLogInterceptor } from './common/intersecptors/audit-log.intercepto
 
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      'mongodb+srv://ariefroger45_db_user:liThAX3O3gIOuHFZ@cluster0.mvqc9to.mongodb.net/?appName=Cluster0',
-    ),
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    ConfigModule.forRoot({ isGlobal: true }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => ({
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+        uri: config.getOrThrow<string>('MONGODB_URI'),
+      }),
+    }),
     CacheModule.register({
       isGlobal: true,
       ttl: 60 * 1000,

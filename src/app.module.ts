@@ -26,13 +26,17 @@ import { AuditLogInterceptor } from './common/intersecptors/audit-log.intercepto
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
         const uri =
+          process.env.MONGODB_URI ??
+          process.env.MONGO_URL ??
+          process.env.MONGODB_URL ??
+          process.env.DATABASE_URL ??
           config.get<string>('MONGODB_URI') ??
           config.get<string>('MONGO_URL') ??
           config.get<string>('MONGODB_URL');
 
         if (!uri) {
           throw new Error(
-            'Missing MongoDB connection string. Set MONGODB_URI (or MONGO_URL / MONGODB_URL) in the environment.',
+            'Missing MongoDB connection string. Set MONGODB_URI (or MONGO_URL / MONGODB_URL / DATABASE_URL) in the environment. Check the [env] diagnostic line above.',
           );
         }
 

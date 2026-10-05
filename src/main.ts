@@ -5,7 +5,21 @@ import { TransformInterceptor } from './common/intersecptors/transform.intersecp
 import { GlovalExceptionFilter } from './common/filter/http-exception.filter';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+function logEnvDiagnostics() {
+  const keys = ['MONGODB_URI', 'MONGO_URL', 'MONGODB_URL', 'DATABASE_URL'];
+  const present = keys.filter((key) => Boolean(process.env[key]));
+  const missing = keys.filter((key) => !process.env[key]);
+  console.log(
+    `[env] total=${Object.keys(process.env).length} port=${
+      process.env.PORT ?? '-'
+    } nodeEnv=${process.env.NODE_ENV ?? '-'} present=[${present.join(
+      ',',
+    )}] missing=[${missing.join(',')}]`,
+  );
+}
+
 async function bootstrap() {
+  logEnvDiagnostics();
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()

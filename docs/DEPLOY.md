@@ -37,8 +37,19 @@ TypeError: Configuration key "MONGODB_URI" does not exist
 Cause: no `MONGODB_URI` in the Railway environment, so the app crash-loops at
 boot. Fix by adding the variable above.
 
-`MONGO_URL` and `MONGODB_URL` are also accepted, matching the names used by the
-Railway MongoDB plugin.
+`MONGO_URL`, `MONGODB_URL`, and `DATABASE_URL` are also accepted, matching names
+used by the Railway MongoDB plugin and other hosts.
+
+At boot the app prints a masked diagnostic line (no secret values):
+
+```
+[env] total=42 port=3000 nodeEnv=production present=[MONGODB_URI] missing=[MONGO_URL,MONGODB_URL,DATABASE_URL]
+```
+
+If `MONGODB_URI` is not in `present=[...]`, the variable did not reach the
+container. Check that the variable is set on **this** service (not only on
+another service or on unlinked project shared variables) and in the same
+environment as the deployment.
 
 ## 3. MongoDB Atlas network access
 

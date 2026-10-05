@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectModel } from '@nestjs/mongoose';
@@ -12,11 +13,24 @@ export class UsersService {
   findByEmail(email: string, isIncludePassword = false) {
     const query = this.userModel.findOne({ email });
     if (isIncludePassword) query.select('+passwordHash');
-    return this.userModel.findOne({ email }).exec();
+    return query.exec();
+  }
+
+  findByIdWithRefreshToken(id: string) {
+    if (!Types.ObjectId.isValid(id)) return null;
+    return this.userModel.findById(id).select('+refreshTokenHash').exec();
+  }
+
+  async setRefreshTokenHash(id: string, hash: string | null): Promise<void> {
+    if (!Types.ObjectId.isValid(id)) return;
+    await this.userModel
+      .updateOne({ _id: id }, { $set: { refreshTokenHash: hash } })
+      .exec();
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserDocument> {
-    const user = new this.userModel(createUserDto);
+    const passwordHash = await bcrypt.hash(createUserDto.passwordHash, 10);
+    const user = new this.userModel({ ...createUserDto, passwordHash });
 
     return user.save();
   }

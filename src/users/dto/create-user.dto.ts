@@ -1,5 +1,7 @@
 import {
+  IsBoolean,
   IsEmail,
+  IsMongoId,
   IsNotEmpty,
   IsOptional,
   IsString,
@@ -21,4 +23,12 @@ export class CreateUserDto {
   @IsOptional()
   @IsString()
   role?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  outletId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
 }

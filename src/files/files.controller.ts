@@ -6,12 +6,15 @@ import {
   Param,
   UploadedFile,
   UseInterceptors,
+  UseGuards,
   Res,
 } from '@nestjs/common';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 import type { Response } from 'express';
 import { FilesService } from './files.service';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('files')
 export class FilesController {
   constructor(private readonly filesService: FilesService) {}
@@ -25,10 +28,12 @@ export class FilesController {
   @Get(':id')
   async download(@Param('id') id: string, @Res() res: Response) {
     const { stream, metadata } = await this.filesService.downloadFile(id);
+    const contentType =
+      (metadata.metadata as { contentType?: string } | undefined)
+        ?.contentType ?? 'application/octet-stream';
 
     res.set({
-      'Content-Type':
-        metadata.metadata?.contentType ?? 'application/octet-stream',
+      'Content-Type': contentType,
       'Content-Disposition': `inline; filename="${metadata.filename}"`,
     });
 

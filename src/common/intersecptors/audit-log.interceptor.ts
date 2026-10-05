@@ -5,11 +5,10 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { audit, tap } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { Request, Response } from 'express';
 import { JwtPayload } from 'src/auth/interfaces/jwt-payload.interface';
 import { AuditLogService } from 'src/audit-logs/audit-logs.service';
-import { log } from 'console';
 
 interface AuditLogPayload {
   method: string;

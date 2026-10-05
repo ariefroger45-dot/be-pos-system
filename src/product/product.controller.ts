@@ -13,13 +13,9 @@ import {
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { AuthGuard } from 'src/common/guards/auth.guard';
 import { PaginationDto } from 'src/common/dto/pagination.dto';
 import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CacheInterceptor, CacheKey, CacheTTL } from '@nestjs/cache-manager';
-import { get } from 'mongoose';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -34,12 +30,12 @@ export class ProductController {
   @Get('categories-list')
   @CacheKey('custom_categories_key')
   @CacheTTL(300 * 1000)
-  async getCategories() {
-    return this.productService.findAllWithCategory;
+  getCategories() {
+    return this.productService.findAllWithCategory();
   }
 
   @Post()
-  @Roles('MANAGER', 'ADMIN')
+  @Roles('ADMIN')
   @ApiOperation({
     summary: 'Create Product',
     description: 'Add New Product into POS System',
@@ -61,6 +57,12 @@ export class ProductController {
     return this.productService.findAll(pagination.skip, pagination.limit);
   }
 
+  @Get('search')
+  @ApiOperation({ summary: 'Search Product by title' })
+  search(@Query('q') q: string) {
+    return this.productService.search(q ?? '');
+  }
+
   @Get(':id')
   @ApiOperation({
     summary: 'Get Single Product',
@@ -73,13 +75,13 @@ export class ProductController {
   }
 
   @Patch(':id')
-  @Roles('MANAGER', 'ADMIN')
+  @Roles('ADMIN')
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productService.update(id, updateProductDto);
   }
 
   @Delete(':id')
-  @Roles('MANAGER', 'ADMIN')
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.productService.remove(id);
   }

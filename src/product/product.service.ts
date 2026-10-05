@@ -34,7 +34,7 @@ export class ProductService {
     const newProduct = new this.productModel(dto);
     const saved = await newProduct.save();
 
-    await this.cacheManager.del('all_products_active');
+    await this.cacheManager.del('all_product_active');
 
     return saved;
   }
@@ -56,16 +56,19 @@ export class ProductService {
     });
     if (!updated) throw new NotFoundException('Product Not Found');
 
+    await this.cacheManager.del('all_product_active');
     return updated;
   }
 
   async remove(id: string): Promise<void> {
     const deleted = await this.productModel.findByIdAndDelete(id);
     if (!deleted) throw new NotFoundException('Product Not Found');
+
+    await this.cacheManager.del('all_product_active');
   }
 
   async findAllWithCategory() {
-    return this.productModel.find().populate('category', 'name');
+    return this.productModel.find().populate('category', 'name').exec();
   }
 
   async search(keyword: string): Promise<Product[]> {

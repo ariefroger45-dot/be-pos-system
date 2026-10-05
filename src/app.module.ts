@@ -7,30 +7,55 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CacheModule } from '@nestjs/cache-manager';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AuditLogsModule } from './audit-logs/audit-log.module';
+import { FilesModule } from './files/files.module';
+import { OutletModule } from './outlet/outlet.module';
+import { CategoryModule } from './category/category.module';
+import { StockModule } from './stock/stock.module';
+import { SaleModule } from './sale/sale.module';
+import { ReportModule } from './report/report.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 import { AuditLogInterceptor } from './common/intersecptors/audit-log.interceptor';
 
 @Module({
   imports: [
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-        uri: config.getOrThrow<string>('MONGODB_URI'),
-      }),
+      useFactory: (config: ConfigService) => {
+        const uri =
+          config.get<string>('MONGODB_URI') ??
+          config.get<string>('MONGO_URL') ??
+          config.get<string>('MONGODB_URL');
+
+        if (!uri) {
+          throw new Error(
+            'Missing MongoDB connection string. Set MONGODB_URI (or MONGO_URL / MONGODB_URL) in the environment.',
+          );
+        }
+
+        return { uri };
+      },
     }),
     CacheModule.register({
       isGlobal: true,
       ttl: 60 * 1000,
       max: 100,
     }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     ProductModule,
     UsersModule,
     AuthModule,
     AuditLogsModule,
+    FilesModule,
+    OutletModule,
+    CategoryModule,
+    StockModule,
+    SaleModule,
+    ReportModule,
+    DashboardModule,
   ],
   controllers: [AppController],
 
@@ -39,6 +64,10 @@ import { AuditLogInterceptor } from './common/intersecptors/audit-log.intercepto
     {
       provide: APP_INTERCEPTOR,
       useClass: AuditLogInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

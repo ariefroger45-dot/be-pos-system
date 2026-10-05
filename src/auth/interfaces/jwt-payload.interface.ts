@@ -1,7 +1,8 @@
 export interface JwtPayload {
   sub: string;
   email: string;
-  role: 'CASHIER' | 'MANAGER' | 'ADMIN';
+  role: 'CASHIER' | 'ADMIN';
+  outletId?: string;
 }
 
 export interface RequestWithUser {

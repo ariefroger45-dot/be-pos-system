@@ -9,19 +9,12 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
-import { Observable } from 'rxjs';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   constructor(private readonly jwtService: JwtService) {}
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    throw new Error('Method not implemented.');
-  }
 
-  // canActivate() otomatis dijalankan NestJS setiap endpoint yang di-guard ini dipanggil
-  async canActive(context: ExecutionContext): Promise<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<Request>();
     const token = this.extractTokenFromHeader(request);
 
@@ -33,8 +26,8 @@ export class JwtAuthGuard implements CanActivate {
         secret: process.env.JWT_ACCESS_SECRET,
       });
 
-      request['user'] = payload; // 🔥 WAJIB: tempel ke request agar RolesGuard & Controller bisa baca
-    } catch (error) {
+      request['user'] = payload;
+    } catch {
       throw new UnauthorizedException('Token invalid or expired!');
     }
 
